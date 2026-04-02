@@ -1,0 +1,53 @@
+{
+  "id": "workflow-001",
+  "name": "User Status Check",
+  "nodes": [
+    {
+      "id": "node-1",
+      "name": "Webhook Trigger",
+      "type": "trigger",
+      "parameters": {}
+    },
+    {
+      "id": "node-2",
+      "name": "Fetch User",
+      "type": "httpRequest",
+      "parameters": {
+        "url": "https://jsonplaceholder.typicode.com/users/1",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "node-3",
+      "name": "Check Active",
+      "type": "if",
+      "parameters": {
+        "condition": "{{ $json.id > 0 }}"
+      }
+    },
+    {
+      "id": "node-4",
+      "name": "Log Active",
+      "type": "log",
+      "parameters": {
+        "message": "{{ $json.name }} is active"
+      }
+    },
+    {
+      "id": "node-5",
+      "name": "Log Inactive",
+      "type": "log",
+      "parameters": {
+        "message": "{{ $json.name }} is inactive"
+      }
+    }
+  ],
+  "connections": {
+    "node-1": [{ "node": "node-2", "outputIndex": 0 }],
+    "node-2": [{ "node": "node-3", "outputIndex": 0 }],
+    "node-3": [
+      { "node": "node-4", "outputIndex": 0 },
+      { "node": "node-5", "outputIndex": 1 }
+    ]
+  }
+}
