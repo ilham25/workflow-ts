@@ -8,17 +8,21 @@ const execute: NodeType["execute"] = async (ctx) => {
 
   const results = await Promise.all(
     items.map(async (item) => {
-      const url = ctx.getNodeParameter("url") as string;
-      const method = ctx.getNodeParameter("method") as string;
+      return await Promise.all(
+        item.map(async (innerItem) => {
+          const url = ctx.getNodeParameter("url") as string;
+          const method = ctx.getNodeParameter("method") as string;
 
-      const query = await ctx.helpers.request(url, { method });
-      const json = await query.json();
+          const query = await ctx.helpers.request(url, { method });
+          const json = await query.json();
 
-      return { json };
+          return { json };
+        }),
+      );
     }),
   );
 
-  return Promise.resolve([results]);
+  return Promise.resolve(results);
 };
 
 export const getNode: WorkflowNodeToNodeType = (workflow, node) => {

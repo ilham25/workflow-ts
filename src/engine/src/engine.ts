@@ -25,24 +25,16 @@ export async function main(json: Workflow, req: Request) {
 
   queue.push(triggerNode, ...getQueue(nodeMap, triggerNode));
 
-  console.log(
-    "queue",
-    JSON.stringify(
-      queue.map((node) => node.description.name),
-      null,
-      2,
-    ),
-  );
-
   while (queue.length) {
     const node = queue.shift()!;
     const input = collectInputs(node, results, req);
-    console.log(
-      node.description.name,
-      JSON.stringify(input.getInputData(), null, 2),
-    );
     const output = await node.execute(input);
     results.set(node.description.name, output);
+
+    if (!queue.length) {
+      console.log({ output, node });
+      return output;
+    }
   }
 }
 
@@ -69,6 +61,7 @@ const collectInputs = (
     },
     helpers: helpers,
     req,
+    node,
   };
 };
 
