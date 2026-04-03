@@ -34,12 +34,16 @@ export async function main(json: Workflow, req: Request) {
     ),
   );
 
-  // while (queue.length) {
-  //   const node = queue.shift()!;
-  //   const input = collectInputs(node, results, req);
-  //   const output = await node.execute(input);
-  //   results.set(node.description.name, output);
-  // }
+  while (queue.length) {
+    const node = queue.shift()!;
+    const input = collectInputs(node, results, req);
+    console.log(
+      node.description.name,
+      JSON.stringify(input.getInputData(), null, 2),
+    );
+    const output = await node.execute(input);
+    results.set(node.description.name, output);
+  }
 }
 
 const collectInputs = (
@@ -47,46 +51,15 @@ const collectInputs = (
   results: Map<string, NodeExecutionData[][]>,
   req: Request,
 ): NodeContext => {
-  const input = node.description.input;
-
-  const rawInputResults = input
-    .map((input) => {
-      return results.get(input.fromNode)!;
-    })
-    .flat(1);
-
   let inputResults: NodeExecutionData[][] = [];
 
-  if (node.description.type === "trigger") {
-    inputResults = [
-      [
-        {
-          json: {
-            body: req.body,
-            headers: req.headers,
-            hostname: req.hostname,
-            host: req.host,
-            ip: req.ip,
-            method: req.method,
-            path: req.path,
-            protocol: req.protocol,
-            query: req.query,
-            secure: req.secure,
-            url: req.url,
-            params: req.params,
-            cookies: req.cookies,
-            signedCookies: req.signedCookies,
-            fresh: req.fresh,
-            stale: req.stale,
-            originalUrl: req.originalUrl,
-          },
-        },
-      ],
-    ];
-  }
+  node.description.input.forEach((input) => {
+    const fromNode = results.get(input.fromNode)!;
+    if (!fromNode) {
+      throw new Error(`Node ${input.fromNode} not found`);
+    }
 
-  node.description.input.forEach((input, index) => {
-    inputResults.push(rawInputResults[input.fromOutputIndex] ?? []);
+    inputResults.push(fromNode[input.fromOutputIndex]!);
   });
 
   return {
@@ -95,6 +68,7 @@ const collectInputs = (
       return node.description.parameters[key] ?? null;
     },
     helpers: helpers,
+    req,
   };
 };
 

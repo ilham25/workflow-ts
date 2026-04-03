@@ -6,15 +6,19 @@ import type { HttpRequestNodeParameters } from "./types/index.js";
 const execute: NodeType["execute"] = async (ctx) => {
   const items = ctx.getInputData();
 
-  // console.log("items", JSON.stringify(items, null, 3));
+  const results = await Promise.all(
+    items.map(async (item) => {
+      const url = ctx.getNodeParameter("url") as string;
+      const method = ctx.getNodeParameter("method") as string;
 
-  const url = ctx.getNodeParameter("url") as string;
-  const method = ctx.getNodeParameter("method") as string;
+      const query = await ctx.helpers.request(url, { method });
+      const json = await query.json();
 
-  const query = await ctx.helpers.request(url, { method });
-  const json = await query.json();
+      return { json };
+    }),
+  );
 
-  return Promise.resolve([[{ json }]]);
+  return Promise.resolve([results]);
 };
 
 export const getNode: WorkflowNodeToNodeType = (workflow, node) => {

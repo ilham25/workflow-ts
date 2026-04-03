@@ -4,8 +4,8 @@ import type { WorkflowNodeToNodeType } from "../types/index.js";
 import type { LogNodeParameters } from "./types/index.js";
 
 const execute: NodeType["execute"] = (ctx) => {
-  const items = ctx.getInputData();
-  return Promise.resolve([]);
+  const message = ctx.getNodeParameter("message") as string;
+  return Promise.resolve([[{ json: { message } }]]);
 };
 
 export const getNode: WorkflowNodeToNodeType = (workflow, node) => {
