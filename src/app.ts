@@ -12,7 +12,7 @@ app.get("/", async (_req, res) => {
     "utf-8",
   );
 
-  await engineMain(JSON.parse(workflow));
+  await engineMain(JSON.parse(workflow), _req);
 
   res.json({ message: "Hello, World!", workflow: JSON.parse(workflow) });
 });

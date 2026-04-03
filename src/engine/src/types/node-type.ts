@@ -11,11 +11,21 @@ export interface BaseNodeType {
   execute: (ctx: NodeContext) => Promise<NodeExecutionData[][]>;
 }
 
+export interface BaseNodeInput {
+  fromNode: string;
+  fromOutputIndex: number;
+}
+
+export interface BaseNodeOutput {
+  toNode: string;
+  toOutputIndex: number;
+}
+
 export interface BaseNodeTypeDescription {
   name: string;
   displayName: string;
-  input: string[];
-  output: string[];
+  input: BaseNodeInput[];
+  output: BaseNodeOutput[];
   parameters: BaseNodeParameters;
 }
 

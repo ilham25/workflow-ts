@@ -1,20 +1,25 @@
 import type { NodeType } from "../../types/node-type.js";
+import { getNodeInput, getNodeOutput } from "../../utils/node-helpers.js";
 import type {
   BaseNodeParameters,
   WorkflowNodeToNodeType,
 } from "../types/index.js";
 
 const execute: NodeType["execute"] = (ctx) => {
-  return Promise.resolve([]);
+  const items = ctx.getInputData();
+  return Promise.resolve(items);
 };
 
 export const getNode: WorkflowNodeToNodeType = (workflow, node) => {
+  const input = getNodeInput(workflow, node);
+  const output = getNodeOutput(workflow, node);
+
   return {
     description: {
       name: node.id,
       displayName: node.name,
-      input: [],
-      output: [],
+      input,
+      output,
       parameters: node.parameters as unknown as BaseNodeParameters,
       type: "trigger",
     },
