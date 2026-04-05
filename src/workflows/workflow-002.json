@@ -3,10 +3,34 @@
   "name": "Diamond Merge",
   "nodes": [
     {
+      "id": "node-3",
+      "name": "Check Active",
+      "type": "if",
+      "parameters": {
+        "condition": "{{ $json.id > 0 }}"
+      }
+    },
+    {
+      "id": "node-6",
+      "name": "Merge Results",
+      "type": "merge",
+      "parameters": {
+        "inputCounts": 2
+      }
+    },
+    {
       "id": "node-1",
       "name": "Webhook Trigger",
       "type": "trigger",
       "parameters": {}
+    },
+    {
+      "id": "node-4",
+      "name": "Log Active",
+      "type": "log",
+      "parameters": {
+        "message": "{{ $json.name }} is active"
+      }
     },
     {
       "id": "node-2",
@@ -18,35 +42,11 @@
       }
     },
     {
-      "id": "node-3",
-      "name": "Check Active",
-      "type": "if",
-      "parameters": {
-        "condition": "{{ $json.id > 0 }}"
-      }
-    },
-    {
-      "id": "node-4",
-      "name": "Log Active",
-      "type": "log",
-      "parameters": {
-        "message": "{{ $json.name }} is active"
-      }
-    },
-    {
       "id": "node-5",
       "name": "Log Inactive",
       "type": "log",
       "parameters": {
         "message": "{{ $json.name }} is inactive"
-      }
-    },
-    {
-      "id": "node-6",
-      "name": "Merge Results",
-      "type": "merge",
-      "parameters": {
-        "inputCounts": 2
       }
     }
   ],

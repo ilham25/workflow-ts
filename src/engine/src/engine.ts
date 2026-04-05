@@ -47,15 +47,9 @@ const collectInputs = async (
   const inputs = node.description.input;
 
   for (const input of inputs) {
-    let fromNode = results.get(input.fromNode)!;
+    let fromNode = results.get(input.fromNode);
     if (!fromNode) {
-      const innerNode = nodeMap.get(input.fromNode)!;
-      await processNode(innerNode, results, req, nodeMap);
-
-      fromNode = results.get(input.fromNode)!;
-      if (!fromNode) {
-        throw new Error(`Node ${input.fromNode} not found`);
-      }
+      throw new Error(`Node ${input.fromNode} not found`);
     }
 
     const inputResult = fromNode[input.fromOutputIndex];
@@ -89,42 +83,39 @@ async function getKahnQueue(pipelines: NodeType[], req: Request) {
     return acc;
   }, new Map<string, NodeType>());
 
-  const queue: NodeType[] = [];
+  const topologicalOrder: NodeType[] = [];
   const results = new Map<string, NodeExecutionData[][]>();
 
   const dependencies: Map<string, string[]> = new Map();
+
   for (const pipeline of pipelines) {
     dependencies.set(
       pipeline.description.name,
-      pipeline.description.input.map((input) => input.fromNode),
+      pipeline.description.input.map((i) => i.fromNode),
     );
   }
 
-  for (const pipeline of pipelines) {
-    const key = pipeline.description.name;
-    const node = nodeMap.get(key)!;
-    while (true) {
-      const degrees = dependencies.get(key)!;
-      if (!degrees.length) {
-        queue.push(node);
-        if (!results.has(key)) {
-          const output = await processNode(node, results, req, nodeMap);
-          results.set(node.description.name, output);
-        }
-        break;
-      }
+  while (true) {
+    if (topologicalOrder.length >= pipelines.length) break;
 
-      for (const deps of degrees) {
-        const depNode = nodeMap.get(deps)!;
-        const output = await processNode(depNode, results, req, nodeMap);
-        results.set(depNode.description.name, output);
-        dependencies.set(
-          key,
-          degrees.filter((deg) => deg != deps),
+    for (const [key, degrees] of dependencies) {
+      if (degrees.length) continue;
+      topologicalOrder.push(nodeMap.get(key)!);
+
+      dependencies.delete(key);
+      dependencies.forEach((_degrees, _key, map) => {
+        map.set(
+          _key,
+          _degrees.filter((deg) => deg != key),
         );
-      }
+      });
     }
   }
 
-  return { queue, results };
+  for (const node of topologicalOrder) {
+    const output = await processNode(node, results, req, nodeMap);
+    results.set(node.description.name, output);
+  }
+
+  return { queue: topologicalOrder, results };
 }
