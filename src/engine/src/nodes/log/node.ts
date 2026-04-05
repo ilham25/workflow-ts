@@ -25,7 +25,6 @@ const execute: NodeType["execute"] = (ctx) => {
 
         tmpMessage = tmpMessage.replace(outputItem, result);
       }
-      console.log(tmpMessage);
     }
   }
 

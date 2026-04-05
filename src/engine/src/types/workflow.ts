@@ -18,4 +18,5 @@ export interface WorkflowNode {
 export interface WorkflowNodeConnection {
   node: string;
   outputIndex: number;
+  inputIndex?: number;
 }

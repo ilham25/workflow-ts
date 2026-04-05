@@ -1,0 +1,63 @@
+{
+  "id": "workflow-002",
+  "name": "Diamond Merge",
+  "nodes": [
+    {
+      "id": "node-1",
+      "name": "Webhook Trigger",
+      "type": "trigger",
+      "parameters": {}
+    },
+    {
+      "id": "node-2",
+      "name": "Fetch User",
+      "type": "httpRequest",
+      "parameters": {
+        "url": "https://jsonplaceholder.typicode.com/users/1",
+        "method": "GET"
+      }
+    },
+    {
+      "id": "node-3",
+      "name": "Check Active",
+      "type": "if",
+      "parameters": {
+        "condition": "{{ $json.id > 0 }}"
+      }
+    },
+    {
+      "id": "node-4",
+      "name": "Log Active",
+      "type": "log",
+      "parameters": {
+        "message": "{{ $json.name }} is active"
+      }
+    },
+    {
+      "id": "node-5",
+      "name": "Log Inactive",
+      "type": "log",
+      "parameters": {
+        "message": "{{ $json.name }} is inactive"
+      }
+    },
+    {
+      "id": "node-6",
+      "name": "Merge Results",
+      "type": "merge",
+      "parameters": {
+        "inputCounts": 2
+      }
+    }
+  ],
+  "connections": {
+    "node-1": [{ "node": "node-2", "outputIndex": 0, "inputIndex": 0 }],
+    "node-2": [{ "node": "node-3", "outputIndex": 0, "inputIndex": 0 }],
+    "node-3": [
+      { "node": "node-4", "outputIndex": 0, "inputIndex": 0 },
+      { "node": "node-5", "outputIndex": 1, "inputIndex": 0 }
+    ],
+    "node-4": [{ "node": "node-6", "outputIndex": 0, "inputIndex": 0 }],
+    "node-5": [{ "node": "node-6", "outputIndex": 0, "inputIndex": 1 }]
+  }
+}

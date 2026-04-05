@@ -9,8 +9,6 @@ import { helpers } from "./utils/helpers.js";
 export async function main(json: Workflow, req: Request) {
   const pipeline = workflowToNodeTypes(json);
 
-  const results = new Map<string, NodeExecutionData[][]>();
-  const queue: NodeType[] = [];
   const triggerNode = pipeline.find(
     (node) => node.description.type === "trigger",
   );
@@ -18,41 +16,57 @@ export async function main(json: Workflow, req: Request) {
     throw new Error("No trigger node found");
   }
 
-  const nodeMap = pipeline.reduce((acc, node) => {
-    acc.set(node.description.name, node);
-    return acc;
-  }, new Map<string, NodeType>());
+  const { queue, results } = await getKahnQueue(pipeline, req);
 
-  queue.push(triggerNode, ...getQueue(nodeMap, triggerNode));
-
-  while (queue.length) {
-    const node = queue.shift()!;
-    const input = collectInputs(node, results, req);
-    const output = await node.execute(input);
-    results.set(node.description.name, output);
-
-    if (!queue.length) {
-      console.log({ output, node });
-      return output;
-    }
-  }
+  return queue.map((node) => ({
+    node,
+    result: results.get(node.description.name),
+  }));
 }
 
-const collectInputs = (
+const processNode = async (
   node: NodeType,
   results: Map<string, NodeExecutionData[][]>,
   req: Request,
-): NodeContext => {
-  let inputResults: NodeExecutionData[][] = [];
+  nodeMap: Map<string, NodeType>,
+): Promise<NodeExecutionData[][]> => {
+  const input = await collectInputs(node, results, req, nodeMap);
 
-  node.description.input.forEach((input) => {
-    const fromNode = results.get(input.fromNode)!;
+  const output = await node.execute(input);
+  return output;
+};
+
+const collectInputs = async (
+  node: NodeType,
+  results: Map<string, NodeExecutionData[][]>,
+  req: Request,
+  nodeMap: Map<string, NodeType>,
+): Promise<NodeContext> => {
+  const inputResults: NodeExecutionData[][] = [];
+
+  const inputs = node.description.input;
+
+  for (const input of inputs) {
+    let fromNode = results.get(input.fromNode)!;
     if (!fromNode) {
-      throw new Error(`Node ${input.fromNode} not found`);
+      const innerNode = nodeMap.get(input.fromNode)!;
+      await processNode(innerNode, results, req, nodeMap);
+
+      fromNode = results.get(input.fromNode)!;
+      if (!fromNode) {
+        throw new Error(`Node ${input.fromNode} not found`);
+      }
     }
 
-    inputResults.push(fromNode[input.fromOutputIndex]!);
-  });
+    const inputResult = fromNode[input.fromOutputIndex];
+    if (!inputResult) {
+      throw new Error(
+        `Node ${input.fromNode} output ${input.fromOutputIndex} not found`,
+      );
+    }
+
+    inputResults.splice(input.toInputIndex, 0, inputResult);
+  }
 
   return {
     getInputData: () => inputResults,
@@ -69,16 +83,48 @@ function workflowToNodeTypes(workflow: Workflow): NodeType[] {
   return workflow.nodes.map((node) => nodes[node.type](workflow, node));
 }
 
-function getQueue(
-  nodeMap: Map<string, NodeType>,
-  currentNode: NodeType,
-): NodeType[] {
+async function getKahnQueue(pipelines: NodeType[], req: Request) {
+  const nodeMap = pipelines.reduce((acc, node) => {
+    acc.set(node.description.name, node);
+    return acc;
+  }, new Map<string, NodeType>());
+
   const queue: NodeType[] = [];
+  const results = new Map<string, NodeExecutionData[][]>();
 
-  currentNode.description.output.forEach((output) => {
-    const node = nodeMap.get(output.toNode)!;
-    queue.push(node, ...getQueue(nodeMap, node));
-  });
+  const dependencies: Map<string, string[]> = new Map();
+  for (const pipeline of pipelines) {
+    dependencies.set(
+      pipeline.description.name,
+      pipeline.description.input.map((input) => input.fromNode),
+    );
+  }
 
-  return queue;
+  for (const pipeline of pipelines) {
+    const key = pipeline.description.name;
+    const node = nodeMap.get(key)!;
+    while (true) {
+      const degrees = dependencies.get(key)!;
+      if (!degrees.length) {
+        queue.push(node);
+        if (!results.has(key)) {
+          const output = await processNode(node, results, req, nodeMap);
+          results.set(node.description.name, output);
+        }
+        break;
+      }
+
+      for (const deps of degrees) {
+        const depNode = nodeMap.get(deps)!;
+        const output = await processNode(depNode, results, req, nodeMap);
+        results.set(depNode.description.name, output);
+        dependencies.set(
+          key,
+          degrees.filter((deg) => deg != deps),
+        );
+      }
+    }
+  }
+
+  return { queue, results };
 }

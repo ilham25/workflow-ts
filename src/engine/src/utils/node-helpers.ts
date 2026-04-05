@@ -16,6 +16,7 @@ export const getNodeInput = (
       return {
         fromNode: key,
         fromOutputIndex: inputNodeConnection.outputIndex,
+        toInputIndex: inputNodeConnection.inputIndex ?? 0,
       };
     });
 };

@@ -18,9 +18,11 @@ app.get("/", async (_req, res) => {
 
   const result = await engineMain(JSON.parse(workflow), _req);
 
-  console.log({ result });
-
-  res.json({ message: "Hello, World!", workflow: JSON.parse(workflow) });
+  res.json({
+    message: "Hello, World!",
+    result,
+    workflow: JSON.parse(workflow),
+  });
 });
 
 export default app;

@@ -1,6 +1,7 @@
 import type { HttpRequestNode } from "../nodes/http-request/types/index.js";
 import type { IfNode } from "../nodes/if/types/index.js";
 import type { LogNode } from "../nodes/log/types/index.js";
+import type { MergeNode } from "../nodes/merge/types/index.js";
 import type { TriggerNode } from "../nodes/trigger/types/index.js";
 import type { BaseNodeParameters } from "../nodes/types/index.js";
 import type { NodeContext } from "./node-context.js";
@@ -14,6 +15,7 @@ export interface BaseNodeType {
 export interface BaseNodeInput {
   fromNode: string;
   fromOutputIndex: number;
+  toInputIndex: number;
 }
 
 export interface BaseNodeOutput {
@@ -29,5 +31,10 @@ export interface BaseNodeTypeDescription {
   parameters: BaseNodeParameters;
 }
 
-export type NodeType = TriggerNode | HttpRequestNode | IfNode | LogNode;
+export type NodeType =
+  | TriggerNode
+  | HttpRequestNode
+  | IfNode
+  | LogNode
+  | MergeNode;
 export type NodeTypes = NodeType["description"]["type"];
