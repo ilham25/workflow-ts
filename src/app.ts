@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import fs from "fs/promises";
 import { main as engineMain } from "./engine/src/engine.js";
+import { expressionEngine } from "./engine/src/expressions/engine.js";
 
 const app: Express = express();
 
@@ -22,6 +23,21 @@ app.get("/", async (_req, res) => {
     message: "Hello, World!",
     result,
     workflow: JSON.parse(workflow),
+  });
+});
+
+app.post("/input", async (_req, res) => {
+  const expression = _req.query["expression"] as string;
+  const body = _req.body;
+  if (!expression) {
+    return res.status(400).json({ message: "Missing expression" });
+  }
+
+  const result = await expressionEngine(body, expression);
+
+  res.json({
+    expression,
+    result,
   });
 });
 

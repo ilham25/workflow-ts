@@ -37,7 +37,7 @@
       "name": "Fetch User",
       "type": "httpRequest",
       "parameters": {
-        "url": "https://jsonplaceholder.typicode.com/users",
+        "url": "https://jsonplaceholder.typicode.com/users/{{ $json.query.userId }}",
         "method": "GET"
       }
     },

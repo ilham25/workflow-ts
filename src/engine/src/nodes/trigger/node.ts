@@ -6,7 +6,16 @@ import type {
 } from "../types/index.js";
 
 const execute: NodeType["execute"] = (ctx) => {
-  const results = [[{ json: [] }]];
+  const results = [
+    [
+      {
+        json: {
+          query: ctx.req.query,
+          headers: ctx.req.headers,
+        },
+      },
+    ],
+  ];
   return Promise.resolve(results);
 };
 

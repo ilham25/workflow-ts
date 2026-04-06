@@ -1,3 +1,4 @@
+import { expressionEngine } from "../../expressions/engine.js";
 import type { NodeType } from "../../types/node-type.js";
 import { getNodeInput, getNodeOutput } from "../../utils/node-helpers.js";
 import type { WorkflowNodeToNodeType } from "../types/index.js";
@@ -10,7 +11,8 @@ const execute: NodeType["execute"] = async (ctx) => {
     items.map(async (item) => {
       return await Promise.all(
         item.map(async (innerItem) => {
-          const url = ctx.getNodeParameter("url") as string;
+          let url = ctx.getNodeParameter("url") as string;
+          url = expressionEngine(innerItem.json, url);
           const method = ctx.getNodeParameter("method") as string;
 
           const query = await ctx.helpers.request(url, { method });
