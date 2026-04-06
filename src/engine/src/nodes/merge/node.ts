@@ -5,9 +5,8 @@ import type { MergeNodeParameters } from "./types/index.js";
 
 const execute: NodeType["execute"] = (ctx) => {
   const items = ctx.getInputData();
-  console.log("items merge", JSON.stringify(items, null, 2));
 
-  return Promise.resolve(items);
+  return Promise.resolve([items.flat(1)]);
 };
 
 export const getNode: WorkflowNodeToNodeType = (workflow, node) => {

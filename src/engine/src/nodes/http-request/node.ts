@@ -16,13 +16,17 @@ const execute: NodeType["execute"] = async (ctx) => {
           const query = await ctx.helpers.request(url, { method });
           const json = await query.json();
 
-          return { json };
+          if (Array.isArray(json)) {
+            return json.map((item) => ({ json: item })).flat(1);
+          }
+
+          return [{ json }];
         }),
       );
     }),
   );
 
-  return Promise.resolve(results);
+  return Promise.resolve(results.flat(1));
 };
 
 export const getNode: WorkflowNodeToNodeType = (workflow, node) => {

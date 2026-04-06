@@ -11,10 +11,10 @@ const execute: NodeType["execute"] = (ctx) => {
   const output = (condition.match(/\{\{(.+?)\}\}/g) ?? [])[0]!;
 
   const itemResults = items.map((item) => {
-    return item.map((item) => {
+    return item.map((innerItem) => {
       const expression = output.replace("{{", "").replace("}}", "").trim();
       const fn = new Function("$json", "$now", "return (" + expression + ")");
-      const result = fn(item.json, new Date());
+      const result = fn(innerItem.json, new Date());
       return result;
     });
   });

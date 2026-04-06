@@ -7,7 +7,7 @@
       "name": "Check Active",
       "type": "if",
       "parameters": {
-        "condition": "{{ $json.id > 0 }}"
+        "condition": "{{ $json.id > 3 }}"
       }
     },
     {
@@ -37,7 +37,7 @@
       "name": "Fetch User",
       "type": "httpRequest",
       "parameters": {
-        "url": "https://jsonplaceholder.typicode.com/users/1",
+        "url": "https://jsonplaceholder.typicode.com/users",
         "method": "GET"
       }
     },
