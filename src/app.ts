@@ -1,9 +1,11 @@
 import express, { type Express } from "express";
 import { expressionEngine } from "./engine/src/expressions/engine.js";
 import workflowsRouter from "./routes/workflows.js";
+import cors from "cors";
 
 const app: Express = express();
 
+app.use(cors());
 app.use(express.json());
 
 app.use("/workflows", workflowsRouter);

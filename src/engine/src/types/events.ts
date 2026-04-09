@@ -1,31 +1,44 @@
 import type { NodeExecutionData } from "./node-execution.js";
+import type { NodeType } from "./node-type.js";
 
 export interface BaseEngineEvent {
   id: string;
 }
 
 interface NodeIdleEvent extends BaseEngineEvent {
-  status: "idle";
-  data: null;
+  data: {
+    node: NodeType;
+    data: null;
+    status: "idle";
+  };
 }
 
 interface NodeProcessingEvent extends BaseEngineEvent {
-  status: "processing";
-  data: null;
+  data: {
+    node: NodeType;
+    data: null;
+    status: "processing";
+  };
 }
 
 interface NodeSuccessEvent extends BaseEngineEvent {
-  status: "success";
   data: {
-    input: NodeExecutionData[][];
-    output: NodeExecutionData[][];
+    status: "success";
+    node: NodeType;
+    data: {
+      input: NodeExecutionData[][];
+      output: NodeExecutionData[][];
+    };
   };
 }
 
 interface NodeErrorEvent extends BaseEngineEvent {
-  status: "error";
   data: {
-    error: string;
+    status: "error";
+    node: NodeType;
+    data: {
+      error: string;
+    };
   };
 }
 
@@ -35,5 +48,5 @@ export type NodeEvent = (
   | NodeSuccessEvent
   | NodeErrorEvent
 ) & {
-  name: "node-event";
+  name: "node:update";
 };
