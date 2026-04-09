@@ -6,10 +6,15 @@ import type { NodeType } from "./types/node-type.js";
 import type { Workflow } from "./types/workflow.js";
 import { helpers } from "./utils/helpers.js";
 import chalk from "chalk";
+import type { NodeEvent } from "./types/events.js";
 
 const log = console.log;
 
-export async function main(json: Workflow, req: Request) {
+export async function main(
+  json: Workflow,
+  req: Request,
+  onEvent: (event: NodeEvent) => void,
+) {
   const pipeline = workflowToNodeTypes(json);
 
   const triggerNode = pipeline.find(
@@ -19,7 +24,58 @@ export async function main(json: Workflow, req: Request) {
     throw new Error("No trigger node found");
   }
 
-  const { queue, results } = await processNodes(pipeline, req);
+  const results = new Map<string, NodeExecutionData[][]>();
+  const nodeMap = pipeline.reduce((acc, node) => {
+    acc.set(node.description.name, node);
+    return acc;
+  }, new Map<string, NodeType>());
+
+  const { queue } = await getQueue(pipeline, nodeMap);
+
+  log(chalk.bgGreen(" Processing Queue "));
+  for (const node of queue) {
+    onEvent({
+      name: "node-event",
+      status: "idle",
+      data: null,
+      id: String(+new Date()),
+    });
+  }
+  for (const node of queue) {
+    onEvent({
+      name: "node-event",
+      status: "processing",
+      data: null,
+      id: String(+new Date()),
+    });
+    try {
+      const { output, input } = await processNode(node, results, req, nodeMap);
+
+      results.set(node.description.name, output);
+      log(`${node.description.name} done.`);
+      onEvent({
+        name: "node-event",
+        status: "success",
+        data: {
+          input: input.getInputData(),
+          output,
+        },
+        id: String(+new Date()),
+      });
+    } catch (error) {
+      log(chalk.bgRed(`${node.description.name} failed.`));
+      onEvent({
+        name: "node-event",
+        status: "error",
+        data: {
+          error: String(error),
+        },
+        id: String(+new Date()),
+      });
+    }
+  }
+
+  log(chalk.bgGreen(" Queue Processing End "));
 
   return queue.map((node) => ({
     node,
@@ -32,11 +88,14 @@ const processNode = async (
   results: Map<string, NodeExecutionData[][]>,
   req: Request,
   nodeMap: Map<string, NodeType>,
-): Promise<NodeExecutionData[][]> => {
+): Promise<{
+  input: NodeContext;
+  output: NodeExecutionData[][];
+}> => {
   const input = await collectInputs(node, results, req, nodeMap);
   const output = await node.execute(input);
 
-  return output;
+  return { input, output };
 };
 
 const collectInputs = async (
@@ -80,14 +139,8 @@ function workflowToNodeTypes(workflow: Workflow): NodeType[] {
   return workflow.nodes.map((node) => nodes[node.type](workflow, node));
 }
 
-async function processNodes(pipelines: NodeType[], req: Request) {
-  const nodeMap = pipelines.reduce((acc, node) => {
-    acc.set(node.description.name, node);
-    return acc;
-  }, new Map<string, NodeType>());
-
+async function getQueue(pipelines: NodeType[], nodeMap: Map<string, NodeType>) {
   const queue: NodeType[] = [];
-  const results = new Map<string, NodeExecutionData[][]>();
 
   const dependencies: Map<string, string[]> = new Map();
 
@@ -134,17 +187,8 @@ async function processNodes(pipelines: NodeType[], req: Request) {
     log(node.description.name);
   }
   log("\n");
-  log(chalk.bgGreen(" Processing Queue "));
 
-  for (const node of queue) {
-    const output = await processNode(node, results, req, nodeMap);
-
-    results.set(node.description.name, output);
-    log(`${node.description.name} done.`);
-  }
-  log(chalk.bgGreen(" Queue Processing End "));
-
-  return { queue, results };
+  return { queue };
 }
 
 function wait(ms: number) {
