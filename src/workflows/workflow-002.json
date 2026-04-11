@@ -8,6 +8,10 @@
       "type": "if",
       "parameters": {
         "condition": "{{ $json.id > 3 }}"
+      },
+      "position": {
+        "x": 240,
+        "y": 0
       }
     },
     {
@@ -16,13 +20,21 @@
       "type": "merge",
       "parameters": {
         "inputCounts": 2
+      },
+      "position": {
+        "x": 480,
+        "y": 0
       }
     },
     {
       "id": "node-1",
       "name": "Webhook Trigger",
       "type": "trigger",
-      "parameters": {}
+      "parameters": {},
+      "position": {
+        "x": 0,
+        "y": 0
+      }
     },
     {
       "id": "node-4",
@@ -30,6 +42,10 @@
       "type": "log",
       "parameters": {
         "message": "{{ $json.name }} is active"
+      },
+      "position": {
+        "x": 360,
+        "y": -80
       }
     },
     {
@@ -39,6 +55,10 @@
       "parameters": {
         "url": "https://jsonplaceholder.typicode.com/users/{{ $json.query.userId }}",
         "method": "GET"
+      },
+      "position": {
+        "x": 120,
+        "y": 0
       }
     },
     {
@@ -47,6 +67,10 @@
       "type": "log",
       "parameters": {
         "message": "{{ $json.name }} is inactive"
+      },
+      "position": {
+        "x": 360,
+        "y": 80
       }
     }
   ],

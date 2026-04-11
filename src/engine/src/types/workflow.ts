@@ -13,6 +13,7 @@ export interface WorkflowNode {
   name: string;
   type: NodeTypes;
   parameters: BaseNodeParameters;
+  position: { x: number; y: number };
 }
 
 export interface WorkflowNodeConnection {

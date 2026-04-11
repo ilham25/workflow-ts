@@ -51,6 +51,7 @@ export const getNode: WorkflowNodeToNodeType = (workflow, node) => {
       output,
       parameters: node.parameters as unknown as IfNodeParameters,
       type: "if",
+      position: node.position,
     },
     execute,
   };

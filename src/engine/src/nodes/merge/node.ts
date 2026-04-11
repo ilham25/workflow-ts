@@ -21,6 +21,7 @@ export const getNode: WorkflowNodeToNodeType = (workflow, node) => {
       output,
       parameters: node.parameters as unknown as MergeNodeParameters,
       type: "merge",
+      position: node.position,
     },
     execute,
   };

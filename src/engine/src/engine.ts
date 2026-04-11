@@ -29,7 +29,7 @@ export async function main(
 
   const results = new Map<string, NodeExecutionData[][]>();
 
-  const { queue, nodeMap } = await getWorkflowQueue(json);
+  const { queue } = await getWorkflowQueue(json);
 
   log(chalk.bgGreen(" Processing Queue "));
   for (const node of queue) {
@@ -44,7 +44,7 @@ export async function main(
     });
     await wait(1000);
     try {
-      const { output, input } = await processNode(node, results, req, nodeMap);
+      const { output, input } = await processNode(node, results, req);
 
       results.set(node.description.name, output);
       log(`${node.description.name} done.`);
@@ -88,12 +88,11 @@ const processNode = async (
   node: NodeType,
   results: Map<string, NodeExecutionData[][]>,
   req: Request,
-  nodeMap: Map<string, NodeType>,
 ): Promise<{
   input: NodeContext;
   output: NodeExecutionData[][];
 }> => {
-  const input = await collectInputs(node, results, req, nodeMap);
+  const input = await collectInputs(node, results, req);
   const output = await node.execute(input);
 
   return { input, output };
@@ -103,7 +102,6 @@ const collectInputs = async (
   node: NodeType,
   results: Map<string, NodeExecutionData[][]>,
   req: Request,
-  nodeMap: Map<string, NodeType>,
 ): Promise<NodeContext> => {
   const inputResults: NodeExecutionData[][] = [];
 

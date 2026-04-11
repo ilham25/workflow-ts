@@ -31,6 +31,7 @@ export const getNode: WorkflowNodeToNodeType = (workflow, node) => {
       output,
       parameters: node.parameters as unknown as BaseNodeParameters,
       type: "trigger",
+      position: node.position,
     },
     execute,
   };

@@ -62,7 +62,7 @@ export async function getWorkflowQueue(json: Workflow) {
   }
   log("\n");
 
-  return { queue, nodeMap };
+  return { queue };
 }
 
 export function workflowToNodeTypes(workflow: Workflow): NodeType[] {

@@ -43,6 +43,7 @@ export const getNode: WorkflowNodeToNodeType = (workflow, node) => {
       output,
       parameters: node.parameters as unknown as HttpRequestNodeParameters,
       type: "httpRequest",
+      position: node.position,
     },
     execute,
   };

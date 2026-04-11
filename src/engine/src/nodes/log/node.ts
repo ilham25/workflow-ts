@@ -33,6 +33,7 @@ export const getNode: WorkflowNodeToNodeType = (workflow, node) => {
       output,
       parameters: node.parameters as unknown as LogNodeParameters,
       type: "log",
+      position: node.position,
     },
     execute,
   };
