@@ -2,6 +2,10 @@
 
 A workflow automation engine built with TypeScript and Express. Executes workflows defined as JSON graphs using a DAG (Directed Acyclic Graph) model with real-time event streaming via SSE.
 
+## Demo UI
+
+[ilham25/workflow-ts-playground](https://github.com/ilham25/workflow-ts-playground) is the companion UI for demoing and presenting this engine.
+
 ## Prerequisites
 
 - Node.js (ES2022+)
