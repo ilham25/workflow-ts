@@ -1,7 +1,7 @@
 import type { NodeType } from "../types/node-type.js";
 import chalk from "chalk";
 import type { Workflow } from "../types/workflow.js";
-import { nodes } from "../nodes/index.js";
+import { nodeRegistry } from "../nodes/index.js";
 
 const log = console.log;
 
@@ -10,16 +10,16 @@ export const helpers = {
 };
 
 export async function getWorkflowQueue(json: Workflow) {
-  const pipelines = workflowToNodeTypes(json);
+  const nodes = workflowToNodeTypes(json);
   const queue: NodeType[] = [];
-  const nodeMap = pipelines.reduce((acc, node) => {
+  const nodeMap = nodes.reduce((acc, node) => {
     acc.set(node.description.name, node);
     return acc;
   }, new Map<string, NodeType>());
   const dependencies: Map<string, string[]> = new Map();
 
   log(chalk.bgBlue(" Current Pipeline Order "));
-  for (const pipeline of pipelines) {
+  for (const pipeline of nodes) {
     log(pipeline.description.name);
     dependencies.set(
       pipeline.description.name,
@@ -30,7 +30,7 @@ export async function getWorkflowQueue(json: Workflow) {
   log(chalk.bgGreen(" Start Kahn's Algorithm "));
 
   while (true) {
-    if (queue.length >= pipelines.length) break;
+    if (queue.length >= nodes.length) break;
     log(chalk.yellow("Checking dependencies update"));
     for (const [key, degrees] of dependencies) {
       if (degrees.length) {
@@ -66,5 +66,5 @@ export async function getWorkflowQueue(json: Workflow) {
 }
 
 export function workflowToNodeTypes(workflow: Workflow): NodeType[] {
-  return workflow.nodes.map((node) => nodes[node.type](workflow, node));
+  return workflow.nodes.map((node) => nodeRegistry[node.type](workflow, node));
 }

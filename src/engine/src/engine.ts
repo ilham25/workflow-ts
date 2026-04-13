@@ -44,7 +44,7 @@ export async function main(
     });
     await wait(1000);
     try {
-      const { output, input } = await processNode(node, results, req);
+      const { output, ctx } = await processNode(node, results, req);
 
       results.set(node.description.name, output);
       log(`${node.description.name} done.`);
@@ -54,7 +54,7 @@ export async function main(
           status: "success",
           node,
           data: {
-            input: input.getInputData(),
+            input: ctx.getInputData(),
             output,
           },
         },
@@ -89,16 +89,16 @@ const processNode = async (
   results: Map<string, NodeExecutionData[][]>,
   req: Request,
 ): Promise<{
-  input: NodeContext;
+  ctx: NodeContext;
   output: NodeExecutionData[][];
 }> => {
-  const input = await collectInputs(node, results, req);
-  const output = await node.execute(input);
+  const ctx = await getContext(node, results, req);
+  const output = await node.execute(ctx);
 
-  return { input, output };
+  return { ctx, output };
 };
 
-const collectInputs = async (
+const getContext = async (
   node: NodeType,
   results: Map<string, NodeExecutionData[][]>,
   req: Request,

@@ -6,7 +6,7 @@ import { getNode as getMergeNode } from "./merge/node.js";
 import { getNode as getTriggerNode } from "./trigger/node.js";
 import type { WorkflowNodeToNodeType } from "./types/index.js";
 
-export const nodes: Record<NodeTypes, WorkflowNodeToNodeType> = {
+export const nodeRegistry: Record<NodeTypes, WorkflowNodeToNodeType> = {
   trigger: getTriggerNode,
   httpRequest: getHttpRequestNode,
   if: getIfNode,
